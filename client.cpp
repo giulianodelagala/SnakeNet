@@ -25,7 +25,7 @@ int size_juego = 6;
 Snake Juego(size_juego);
 
 string usuario = "";
-
+/*
 string PadZeros(int number, int longitud)
 {
   string num_letra = to_string(number);
@@ -34,7 +34,7 @@ string PadZeros(int number, int longitud)
   
   return num_letra;
 }
-
+*/
 string ProtocoloMensaje(string mensaje)
 {
   int longitud = mensaje.length();
@@ -46,10 +46,12 @@ void RecepcionMensaje(int SocketFD)
   int n;
   char buffer[256];
   int longitud = 0;
+  char ficha = ' ';
   for(;;)
   {
     //Lectura Comando
     n = read(SocketFD,buffer,1);
+    sleep(0.001);
     if (n < 0) perror("ERROR reading from socket");
     if (n == 1)
     {
@@ -61,27 +63,58 @@ void RecepcionMensaje(int SocketFD)
           n = read(SocketFD, buffer, 1);
           if (n == 1)
           {
-            Juego.insertar_jugador(2,2, buffer[0]); //TODO MEJORAR DEBE RECIBIR POSICION
+            ficha = buffer[0];
+            Juego.insertar_jugador(2,2, ficha); //TODO MEJORAR DEBE RECIBIR POSICION
+            Juego.mostrar();
+            bzero(buffer,256);
           }
           break;
         }
+
+        case 'i':
+        {
+          //Nuevo jugador
+          n = read(SocketFD, buffer, 1);
+          if (n == 1)
+          {
+            ficha = buffer[0];
+            //Leer tamano mensaje
+            n = read(SocketFD, buffer, 3);
+            if (n == 3)
+            {
+              longitud = stoi(buffer); 
+              //Leer posiciones
+              n = read(SocketFD, buffer, longitud);
+              if ( n == longitud)
+              {
+                string str_pos = buffer;
+                cout << str_pos;
+                Juego.insertar_jugador(str_pos, ficha); 
+                Juego.mostrar();
+              }
+            }   
+            bzero(buffer,256);
+          }
+          break;
+        }
+
         case 'w':
-          Juego.moverjugador('w', 'j'); //TODO MEJORAR MULTIJUGADOR
-          Juego.mostrar();
-          break;
         case 's':
-          Juego.moverjugador('s', 'j'); //TODO MEJORAR MULTIJUGADOR
-          Juego.mostrar();
-          break;
-        
         case 'a':
-          Juego.moverjugador('a', 'j'); //TODO MEJORAR MULTIJUGADOR
-          Juego.mostrar();
+        case 'd':
+        {
+          char direc = buffer[0];
+          n = read(SocketFD, buffer, 1);
+          if (n == 1)
+          {
+            ficha = buffer[0];
+            Juego.moverjugador(direc, ficha);
+            //cout << Juego.info(ficha);
+            Juego.mostrar();
+            bzero(buffer,256);
+          }
           break;
-        case 'd': 
-          Juego.moverjugador('d', 'j'); //TODO MEJORAR MULTIJUGADOR
-          Juego.mostrar();
-          break;
+        }
         case 'C': //Mensaje
         {
           n = read(SocketFD, buffer, 2);
@@ -108,7 +141,7 @@ void EnvioMensaje(int SocketFD)
 {
   string msgToChat = "";
   //char buffer[256];
-  char c[1];
+  char c = ' ';
   int n;
    
   //Iniciar ficha jugador
@@ -116,7 +149,7 @@ void EnvioMensaje(int SocketFD)
   getline(cin, msgToChat);
   msgToChat = "n" + msgToChat;
   n = write(SocketFD, msgToChat.c_str(), msgToChat.length());
-
+  //cout << "fichainit: " << msgToChat;
   // Terminal no espera de linea
   tcsetattr(STDIN_FILENO,TCSANOW,&new_tio);
 
@@ -125,10 +158,11 @@ void EnvioMensaje(int SocketFD)
     //cin.clear(); 
     //cout << "\nIngrese comando: ";
     //getline(cin, msgToChat);
-    c[0] = getchar();
+    c = getchar();
 
-    if(c[0] == 'c')
-    { 
+    switch (c)
+    {
+    case 'c':
       //Terminal a espera de linea
       tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
 
@@ -141,17 +175,23 @@ void EnvioMensaje(int SocketFD)
 
       // Terminal no espera de linea
       tcsetattr(STDIN_FILENO,TCSANOW,&new_tio);
-    }
-    else 
+      break;
+    
+    case 'w':
+    case 's':
+    case 'a':
+    case 'd':
     {
       //Posible Comando o jugada
-      c[0] = getchar();
-      //msgToChat = c[0];
-      //n = write(SocketFD, msgToChat.c_str(), msgToChat.length());
-      n = write(SocketFD, c, sizeof(char));
-      //if (n == 1)
-      //  cout << c;
-    }   
+      string msg(1,c);
+      n = write(SocketFD, msg.c_str(), msg.length());
+
+      break;
+    }
+    default:
+      break;
+    }
+    
   }
 }
 

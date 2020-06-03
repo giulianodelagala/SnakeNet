@@ -27,7 +27,7 @@ std::map<int,char> R_LISTA;
 int size_juego = 6;
 Snake Juego(size_juego);
 ///////////
-
+/*
 string PadZeros(int number, int longitud)
 {
   string num_letra = to_string(number);
@@ -36,7 +36,7 @@ string PadZeros(int number, int longitud)
   
   return num_letra;
 }
-
+*/
 void EnviarMensaje(int socket_client, string mensaje)
 {
   int n = write(socket_client, mensaje.c_str(), mensaje.length());
@@ -64,12 +64,12 @@ void Process_Client_Thread(int socket_client)
   int n;
   char comando;
   int longitud = 0;
-
+  //char ficha = ' ';
   do
     {
       //Lectura comando
       n = read(socket_client,buffer,1);  
-      
+      sleep(0.001);
       if (n < 0)
         perror("ERROR reading from socket");
 
@@ -84,44 +84,39 @@ void Process_Client_Thread(int socket_client)
           n = read(socket_client, buffer, 1);
           if (n == 1)
           {
-            LISTA_CLIENTES.push_back(pair<char,int>(buffer[0],(int)socket_client));
-            LISTA_MAP.insert(pair<int,char>(socket_client, buffer[0]));
-            Juego.insertar_jugador(2,2, buffer[0]); //TODO MEJORAR A RANDOM
-            BroadCast("nj"); // TODO MENSAJE SEGUN FICHA
+            char ficha = buffer[0];
+                     
+            //Debe enviar la posicion de todos los jugadores actuales
+            //al nuevo jugador
+            for (pair<char, int> i: LISTA_CLIENTES)
+            {
+              string str_pos = Juego.info(i.first); //posicion de player i
+              string msg = "i" + string(1, i.first) + PadZeros(str_pos.length(),3) + str_pos;
+              EnviarMensaje(socket_client, msg);
+            }
+
+            LISTA_CLIENTES.push_back(pair<char,int>(ficha,(int)socket_client));
+            LISTA_MAP.insert(pair<int,char>(socket_client, ficha));
+
+            Juego.insertar_jugador(2,2, ficha); //TODO MEJORAR A RANDOM
+            //Debe enviar la posicion del nuevo jugador a todos
+            string msg(1, ficha);
+            BroadCast("n" + msg); //TODO Mejorar debe enviar posicion
           }
           break;
         }
         
-        case 'w': 
-        { //Movimiento hacia arriba
-          
-          Juego.moverjugador('w', LISTA_MAP[socket_client]);
-          BroadCast("w"); //TODO MOVIMIENTO MULTIJUGADOR
-          break;
-        }
-
+        case 'w':
         case 's':
-        { // Movimiento hacia abajo
-          Juego.moverjugador('s', LISTA_MAP[socket_client]);
-          BroadCast("s"); //TODO MOVIMIENTO MULTIJUGADOR
-          break;
-        }
-
         case 'a':
-        {  //Movimiento a la izquierda
-          Juego.moverjugador('a', LISTA_MAP[socket_client]);
-          BroadCast("a"); //TODO MOVIMIENTO MULTIJUGADOR
-          break;
-        }
-
         case 'd':
-        {  //Movimiento a la derecha
-          Juego.moverjugador('d', LISTA_MAP[socket_client]);
-          BroadCast("d"); //TODO MOVIMIENTO MULTIJUGADOR
+        { 
+          char ficha = LISTA_MAP[socket_client];
+          Juego.moverjugador(comando, ficha);
+
+          BroadCast(string(1,comando) + string(1,ficha)); 
           break;
         }
-        
-
 
         case 'C': //Es un mensaje de chat
           //Leer tamaño mensaje

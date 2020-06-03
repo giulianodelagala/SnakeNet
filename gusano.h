@@ -9,24 +9,47 @@ using namespace std;
 
 ////////////////////////////////////////////////////////
 vector<vector<char>> tab;
-int size_gus=0;
+//int size_gus=0;
 ////////////////////////////////////////////////////////
 struct Casilla{
 	char prop = '+';
 };
+
+string PadZeros(int number, int longitud)
+{
+  string num_letra = to_string(number);
+  for (int i = num_letra.length(); i < longitud; ++i)
+    num_letra = "0" + num_letra;
+  
+  return num_letra;
+}
+
 class Gusano{
 public:
 	vector<pair<int,int>> posiciones;
 	char id;
+	int size_gus = 3;
 	Gusano(int x,int y,char c)
 	{
-		for(int i=0;i<3;i++)
+		for(int i=0;i<size_gus;i++)
 		{
 			pair<int,int> temp(x,y);
 			posiciones.push_back(temp);
 		}
 		id=c;
 	}
+	Gusano(string str_pos, char c)
+	{
+		for (int i = 0; i < str_pos.length(); i+=4)
+		{
+			int x = stoi(str_pos.substr(i,2));
+			int y = stoi(str_pos.substr(i+2,2));
+			pair<int,int> temp(x,y);
+			posiciones.push_back(temp);
+		}
+		id = c;
+	}
+
 	void pintar(char c){
 		for(auto i:posiciones){
 			tab[i.first][i.second]=c;
@@ -43,8 +66,9 @@ public:
 		}
 		posiciones=temp;
 	}
-	bool Lose(){
-		
+	bool Lose()
+	{
+		return true;		
 	} 
 	void mover(char e){
 		switch(e){
@@ -88,11 +112,20 @@ public:
 			return;
 		}
 	}
-	
+	string info()
+	{
+		string str_pos = "";
+		for (auto p = posiciones.begin(); p != posiciones.end(); ++p)
+		{
+			str_pos += PadZeros(p->first, 2) + PadZeros(p->second,2);
+		}
+		return str_pos;
+	}
 };
 class Snake{
 	vector<Gusano> jugadores; //TODO Mejorar a MAP
 public:
+	int size_gus = 0;
 	Snake(int si){
 		size_gus = si;
 		tab.resize(size_gus, vector<char>(size_gus));
@@ -106,6 +139,13 @@ public:
 		Gusano temp(x,y,id);
 		jugadores.push_back(temp);
 	}
+
+	void insertar_jugador(string str_pos, char id)
+	{
+		Gusano temp(str_pos, id);
+		jugadores.push_back(temp);
+	}
+
 	void moverjugador(char direc,char id){
 		auto i=jugadores.begin();
 		for(;i!=jugadores.end();i++){
@@ -113,8 +153,7 @@ public:
 				i->mover(direc);
 				break;
 			}
-		}
-		
+		}	
 	}
 	void mostrar()
 	{	
@@ -126,6 +165,16 @@ public:
 			cout<<"\n\n";
 		}
 	}
+	string info(char id)
+	{
+		auto i=jugadores.begin();
+		for(;i!=jugadores.end();i++){
+			if(id==i->id){
+				return i->info();
+				break;
+			}
+		}	
+	}	
 };
 
 /*
