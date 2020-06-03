@@ -98,10 +98,12 @@ void Process_Client_Thread(int socket_client)
             LISTA_CLIENTES.push_back(pair<char,int>(ficha,(int)socket_client));
             LISTA_MAP.insert(pair<int,char>(socket_client, ficha));
 
-            Juego.insertar_jugador(2,2, ficha); //TODO MEJORAR A RANDOM
+            Juego.insertar_jugador(4,4, ficha); //TODO MEJORAR A RANDOM
             //Debe enviar la posicion del nuevo jugador a todos
-            string msg(1, ficha);
-            BroadCast("n" + msg); //TODO Mejorar debe enviar posicion
+            string str_pos = Juego.info(ficha); //posicion de nuevo player
+            string msg = "i" + string(1, ficha) + PadZeros(str_pos.length(),3) + str_pos;
+            //string msg(1, ficha);
+            BroadCast(msg); 
           }
           break;
         }

@@ -9,7 +9,7 @@ using namespace std;
 
 ////////////////////////////////////////////////////////
 vector<vector<char>> tab;
-//int size_gus=0;
+int size_tab=0;
 ////////////////////////////////////////////////////////
 struct Casilla{
 	char prop = '+';
@@ -92,7 +92,7 @@ public:
 		}
 		case 's':{
 			pair<int,int> temp=posiciones.front();	
-			if(temp.first+1==size_gus)
+			if(temp.first+1==size_tab)
 				break;
 			pintar('+');
 			actualizar(temp.first+1,temp.second);
@@ -101,7 +101,7 @@ public:
 		}
 		case 'd':{
 			pair<int,int> temp=posiciones.front();
-			if(temp.second+1==size_gus)
+			if(temp.second+1==size_tab)
 				break;
 			pintar('+');
 			actualizar(temp.first,temp.second+1);
@@ -125,12 +125,12 @@ public:
 class Snake{
 	vector<Gusano> jugadores; //TODO Mejorar a MAP
 public:
-	int size_gus = 0;
+	//int size_gus = 0;
 	Snake(int si){
-		size_gus = si;
-		tab.resize(size_gus, vector<char>(size_gus));
-		for(int i=0;i<size_gus;i++){
-			for(int j=0;j<size_gus;j++){
+		size_tab = si;
+		tab.resize(size_tab, vector<char>(size_tab));
+		for(int i=0;i<size_tab;i++){
+			for(int j=0;j<size_tab;j++){
 				tab[i][j]='+';
 			}
 		}
@@ -167,7 +167,7 @@ public:
 	}
 	string info(char id)
 	{
-		auto i=jugadores.begin();
+		auto i=jugadores.begin(); //TODO MEJORAR A MAP
 		for(;i!=jugadores.end();i++){
 			if(id==i->id){
 				return i->info();
