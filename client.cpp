@@ -21,7 +21,7 @@ using namespace std;
 
 struct termios old_tio, new_tio;
 
-int size_juego = 6;
+int size_juego = 20;
 Snake Juego(size_juego);
 
 string usuario = "";
@@ -65,6 +65,7 @@ void RecepcionMensaje(int SocketFD)
           {
             ficha = buffer[0];
             Juego.insertar_jugador(2,2, ficha); //TODO MEJORAR DEBE RECIBIR POSICION
+            tab[2][2]=ficha;
             Juego.mostrar();
             bzero(buffer,256);
           }
@@ -85,10 +86,13 @@ void RecepcionMensaje(int SocketFD)
               longitud = stoi(buffer); 
               //Leer posiciones
               n = read(SocketFD, buffer, longitud);
-              if ( n == longitud)
-              {
+              if ( n == longitud){
                 string str_pos = buffer;
-                cout << str_pos;
+                
+                int x = stoi(str_pos.substr(0,2));
+			          int y = stoi(str_pos.substr(2,2));
+			          //cout<<"x - y"<<x<<" - "<<y;
+                tab[x][y]=char(toupper(ficha));
                 Juego.insertar_jugador(str_pos, ficha); 
                 Juego.mostrar();
               }
@@ -123,8 +127,7 @@ void RecepcionMensaje(int SocketFD)
             longitud = stoi(buffer);
             //Leer mensaje
             n = read(SocketFD, buffer, longitud);
-            if (n == longitud)
-            {
+            if (n == longitud){
               cout << buffer << "\n";
             }
             bzero(buffer,256);
@@ -227,9 +230,9 @@ int main(void)
   memset(&stSockAddr, 0, sizeof(struct sockaddr_in));
 
   stSockAddr.sin_family = AF_INET;
-  stSockAddr.sin_port = htons(1100);
+  stSockAddr.sin_port = htons(20017);
   //Res = inet_pton(AF_INET, "51.15.220.108", &stSockAddr.sin_addr);
-  Res = inet_pton(AF_INET, "127.0.0.1", &stSockAddr.sin_addr);
+  Res = inet_pton(AF_INET, "51.15.220.108", &stSockAddr.sin_addr);
 
   if (0 > Res)
   {

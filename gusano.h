@@ -11,9 +11,7 @@ using namespace std;
 vector<vector<char>> tab;
 int size_tab=0;
 ////////////////////////////////////////////////////////
-struct Casilla{
-	char prop = '+';
-};
+char prop = '.';
 
 string PadZeros(int number, int longitud)
 {
@@ -28,6 +26,7 @@ class Gusano{
 public:
 	vector<pair<int,int>> posiciones;
 	char id;
+	int points = 0;
 	int size_gus = 3;
 	Gusano(int x,int y,char c)
 	{
@@ -37,6 +36,7 @@ public:
 			posiciones.push_back(temp);
 		}
 		id=c;
+		pintar(c);
 	}
 	Gusano(string str_pos, char c)
 	{
@@ -54,6 +54,8 @@ public:
 		for(auto i:posiciones){
 			tab[i.first][i.second]=c;
 		}
+		auto i=posiciones.begin();
+		tab[i->first][i->second]=char(toupper(c)) ;
 	}
 	void actualizar(int x,int y){
 		vector<pair<int,int>> temp;
@@ -76,7 +78,7 @@ public:
 			pair<int,int> temp=posiciones.front();
 			if(temp.first-1==-1)
 				break;
-			pintar('+');
+			pintar(prop);
 			actualizar(temp.first-1,temp.second);
 			pintar(id);
 			break;
@@ -85,7 +87,7 @@ public:
 			pair<int,int> temp=posiciones.front();
 			if(temp.second-1==-1)
 				break;
-			pintar('+');
+			pintar(prop);
 			actualizar(temp.first,temp.second-1);
 			pintar(id);
 			break;
@@ -94,7 +96,7 @@ public:
 			pair<int,int> temp=posiciones.front();	
 			if(temp.first+1==size_tab)
 				break;
-			pintar('+');
+			pintar(prop);
 			actualizar(temp.first+1,temp.second);
 			pintar(id);
 			break;
@@ -103,7 +105,7 @@ public:
 			pair<int,int> temp=posiciones.front();
 			if(temp.second+1==size_tab)
 				break;
-			pintar('+');
+			pintar(prop);
 			actualizar(temp.first,temp.second+1);
 			pintar(id);
 			break;
@@ -125,13 +127,14 @@ public:
 class Snake{
 	vector<Gusano> jugadores; //TODO Mejorar a MAP
 public:
+	string puntajes_jugadores = "";	
 	//int size_gus = 0;
 	Snake(int si){
 		size_tab = si;
 		tab.resize(size_tab, vector<char>(size_tab));
 		for(int i=0;i<size_tab;i++){
 			for(int j=0;j<size_tab;j++){
-				tab[i][j]='+';
+				tab[i][j]=prop;
 			}
 		}
 	}
@@ -140,8 +143,7 @@ public:
 		jugadores.push_back(temp);
 	}
 
-	void insertar_jugador(string str_pos, char id)
-	{
+	void insertar_jugador(string str_pos, char id){
 		Gusano temp(str_pos, id);
 		jugadores.push_back(temp);
 	}
@@ -151,18 +153,18 @@ public:
 		for(;i!=jugadores.end();i++){
 			if(id==i->id){
 				i->mover(direc);
+				verificar_puntaje(*i);
 				break;
 			}
 		}	
 	}
-	void mostrar()
-	{	
+	void mostrar(){
 		system("clear");
 		for(auto i:tab){
 			for(auto j:i){
-				cout<<j<<"    ";
+				cout<<j<<"   ";
 			}
-			cout<<"\n\n";
+			cout<<"\n";
 		}
 	}
 	string info(char id)
@@ -174,37 +176,31 @@ public:
 				break;
 			}
 		}	
-	}	
-};
-
-/*
-int main(int argc, char *argv[]) {
-	Snake s(6);
-	s.insertar_jugador(1,1,'j');
-	char c=' ';
-	struct termios old_tio, new_tio;
-	
-	// get the terminal settings for stdin
-    tcgetattr(STDIN_FILENO,&old_tio);
-
-    // we want to keep the old setting to restore them a the end
-    new_tio=old_tio;
-
-    // disable canonical mode (buffered i/o) and local echo
-    new_tio.c_lflag &=(~ICANON & ~ECHO);
-
-    // set the new settings immediately 
-    tcsetattr(STDIN_FILENO,TCSANOW,&new_tio);
-
-	while(true){
-		s.mostrar();
-		c = getchar();
-		s.moverjugador(c,'j');
-		system("clear");
 	}
 
-	// restore the former settings 
-    tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
-	return 0;
-}
-*/
+	bool verificar_puntaje(Gusano &gusano){
+		auto i=jugadores.begin();
+		for(;i!=jugadores.end();i++){
+			if(gusano.id != i->id){
+				if(gusano.posiciones.front().first == i->posiciones.back().first && gusano.posiciones.front().second == i->posiciones.back().second){
+					gusano.points = gusano.points + 1;
+					//cout << "puntaje de " << gusano.id << " = " << gusano.points << endl;
+					cout << build_puntajes() << endl;
+					puntajes_jugadores = build_puntajes();
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	string build_puntajes(){
+		string msg = "";
+		auto i=jugadores.begin();
+		for(;i!=jugadores.end();i++){
+			msg += string(1,i->id) + " = " + to_string(i->points) + "    ";
+		}
+		return "C" + PadZeros(msg.size(),2) + msg;	
+	}
+};
+

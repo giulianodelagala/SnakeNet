@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <unistd.h>
-
+#include <stdlib.h>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -24,7 +24,7 @@ std::map<int, char> LISTA_MAP;
 std::map<int,char> R_LISTA;
 
 // Variables del Juego
-int size_juego = 6;
+int size_juego = 20;
 Snake Juego(size_juego);
 ///////////
 /*
@@ -82,23 +82,24 @@ void Process_Client_Thread(int socket_client)
         case 'n': 
         { //Nuevo jugador
           n = read(socket_client, buffer, 1);
-          if (n == 1)
-          {
+          if (n == 1){
             char ficha = buffer[0];
                      
             //Debe enviar la posicion de todos los jugadores actuales
             //al nuevo jugador
-            for (pair<char, int> i: LISTA_CLIENTES)
-            {
+            for (pair<char, int> i: LISTA_CLIENTES){
               string str_pos = Juego.info(i.first); //posicion de player i
               string msg = "i" + string(1, i.first) + PadZeros(str_pos.length(),3) + str_pos;
+              cout<<"msg "<<msg<<endl;
               EnviarMensaje(socket_client, msg);
             }
 
             LISTA_CLIENTES.push_back(pair<char,int>(ficha,(int)socket_client));
             LISTA_MAP.insert(pair<int,char>(socket_client, ficha));
-
-            Juego.insertar_jugador(4,4, ficha); //TODO MEJORAR A RANDOM
+            int x= rand() % size_juego;
+            int y=  rand() % size_juego;
+            srand(time(NULL));
+            Juego.insertar_jugador(x,y, ficha); //TODO MEJORAR A RANDOM
             //Debe enviar la posicion del nuevo jugador a todos
             string str_pos = Juego.info(ficha); //posicion de nuevo player
             string msg = "i" + string(1, ficha) + PadZeros(str_pos.length(),3) + str_pos;
@@ -116,7 +117,8 @@ void Process_Client_Thread(int socket_client)
           char ficha = LISTA_MAP[socket_client];
           Juego.moverjugador(comando, ficha);
 
-          BroadCast(string(1,comando) + string(1,ficha)); 
+          BroadCast(string(1,comando) + string(1,ficha));
+          BroadCast(Juego.puntajes_jugadores); 
           break;
         }
 
